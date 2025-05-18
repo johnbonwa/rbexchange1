@@ -26,7 +26,12 @@ export function useTransactionHistory() {
     try {
       const stored = await AsyncStorage.getItem(STORAGE_KEY);
       if (stored) {
-        setTransactions(JSON.parse(stored));
+        const parsedTransactions = JSON.parse(stored);
+        // Sort transactions by timestamp in descending order (newest first)
+        const sortedTransactions = parsedTransactions.sort((a: Transaction, b: Transaction) => 
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
+        setTransactions(sortedTransactions);
       }
     } catch (error) {
       console.error('Error loading transactions:', error);
@@ -35,8 +40,11 @@ export function useTransactionHistory() {
 
   const addTransaction = async (transaction: Transaction) => {
     try {
+      // Add new transaction to the beginning of the array
       const newTransactions = [transaction, ...transactions];
+      // Save to AsyncStorage
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newTransactions));
+      // Update state
       setTransactions(newTransactions);
     } catch (error) {
       console.error('Error saving transaction:', error);
